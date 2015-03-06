@@ -11,6 +11,6 @@ namespace AngryBoy
 
 		FCartridgeException(std::string Message);
 		FCartridgeException(const FCartridgeException & Copy);
-		virtual ~FCartridgeException();
+		virtual ~FCartridgeException() throw();
 	};
 }

@@ -15,10 +15,10 @@ namespace AngryBoy
 		FException();
 		FException(const FException & Copy);
 		FException(std::string InMessage);
-		virtual ~FException();
+		virtual ~FException() throw();
 		virtual std::string Message() const;
 
 		// begin std::exception
-		virtual const char* what() const override;
+		virtual const char* what() const throw() override;
 	};
 }

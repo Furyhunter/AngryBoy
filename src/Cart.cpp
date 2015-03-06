@@ -21,7 +21,7 @@ FCart::FCart(string Path)
 	ifstream file(Path, ifstream::binary);
 	if (!file)
 	{
-		throw FCartridgeException("File not found: "s + Path);
+		throw FCartridgeException(string("File not found: ") + Path);
 	}
 	u8* Buf = new u8[0x150]; // for getting the initial header
 	FCartHeader* Header = reinterpret_cast<FCartHeader*>(Buf+0x100);
@@ -35,7 +35,7 @@ FCart::FCart(string Path)
 	{
 		file.close();
 
-		throw FCartridgeException("Incorrect file size for "s + Path + ": Got " + to_string(file.gcount()) + ", expected " + to_string(ROMSize));
+		throw FCartridgeException(string("Incorrect file size for ") + Path + ": Got " + to_string(file.gcount()) + ", expected " + to_string(ROMSize));
 	}
 
 	file.close();

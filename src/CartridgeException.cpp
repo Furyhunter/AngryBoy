@@ -12,7 +12,7 @@ FCartridgeException::FCartridgeException(const FCartridgeException& Copy) : Supe
 
 }
 
-FCartridgeException::~FCartridgeException()
+FCartridgeException::~FCartridgeException() throw()
 {
 	Super::~Super();
 }

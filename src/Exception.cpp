@@ -20,9 +20,8 @@ FException::FException(std::string InMessage) : MessageString(InMessage)
 
 }
 
-FException::~FException()
+FException::~FException() throw()
 {
-	Super::~Super();
 }
 
 string FException::Message() const
@@ -30,7 +29,7 @@ string FException::Message() const
 	return MessageString;
 }
 
-const char * FException::what() const
+const char * FException::what() const throw()
 {
 	return MessageString.c_str();
 }
