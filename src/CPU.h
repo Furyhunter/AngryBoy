@@ -33,8 +33,12 @@ public:
 
 	u32 TotalInstructionsRun = 0;
 
+	u16 bc() const { return ((u16)b << 8) + c; }
+	u16 de() const { return ((u16)d << 8) + e; }
 	u16 hl() const { return ((u16)h << 8) + l; }
 	u16 af() const { return ((u16)a << 8) + f; }
+	void bc(u16 v) { b = (v & 0xFF00) >> 8; c = v & 0x00FF; }
+	void de(u16 v) { d = (v & 0xFF00) >> 8; e = v & 0x00FF; }
 	void hl(u16 v) { h = (v & 0xFF00) >> 8; l = v & 0x00FF; }
 	void af(u16 v) { a = (v & 0xFF00) >> 8; f = v & 0x00FF; }
 

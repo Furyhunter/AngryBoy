@@ -174,9 +174,6 @@ INSTRUCTION(LD_A_n)
 
 INSTRUCTION(LD_n_A)
 {
-	u8* RegisterN = nullptr;
-	u8 Low = 0x0F;
-	u8 High = 0xF0;
 	u32 Cycles = 4;
 	u16 Loc = 0;
 	
@@ -218,47 +215,69 @@ INSTRUCTION(LD_n_A)
 
 INSTRUCTION(LD_A_PC)
 {
+	CPU->a = CPU->MemoryController[0xFF00 + CPU->c];
 	return 8;
 }
 
 INSTRUCTION(LD_PC_A)
 {
+	CPU->MemoryController[0xFF00 + CPU->c] = CPU->a;
 	return 8;
 }
 
 INSTRUCTION(LD_A_PHLD)
 {
+	CPU->a = CPU->MemoryController[CPU->hl()];
+	CPU->hl(CPU->hl() - 1);
 	return 8;
 }
 
 INSTRUCTION(LD_PHLD_A)
 {
+	CPU->MemoryController[CPU->hl()] = CPU->a;
+	CPU->hl(CPU->hl() - 1);
 	return 8;
 }
 
 INSTRUCTION(LD_A_PHLI)
 {
+	CPU->a = CPU->MemoryController[CPU->hl()];
+	CPU->hl(CPU->hl() + 1);
 	return 8;
 }
 
 INSTRUCTION(LD_PHLI_A)
 {
+	CPU->MemoryController[CPU->hl()] = CPU->a;
+	CPU->hl(CPU->hl() + 1);
 	return 8;
 }
 
 INSTRUCTION(LDH_Pn_A)
 {
+	CPU->MemoryController[0xFF00 + CPU->NextByte()] = CPU->a;
 	return 12;
 }
 
 INSTRUCTION(LDH_A_Pn)
 {
+	CPU->a = CPU->MemoryController[0xFF00 + CPU->NextByte()];
 	return 12;
 }
 
 /* #####  16-bit Loads  #####*/
 INSTRUCTION(LD_sn_snn)
 {
+	u8 High = OpCode & 0xF0;
+	
+	switch (High)
+	{
+	case 0: CPU->bc(CPU->NextWord()); break;
+	case 1: CPU->de(CPU->NextWord()); break;
+	case 2: CPU->hl(CPU->NextWord()); break;
+	case 3: CPU->sp = CPU->NextWord(); break;
+	default: break;
+	}
 	return 12;
 }
 
@@ -270,31 +289,77 @@ INSTRUCTION(LD_SP_HL)
 
 INSTRUCTION(LD_SP_n)
 {
-	u8 Immediate = CPU->MemoryController[CPU->pc + 1];
-	CPU->pc += 1;
-	CPU->hl(CPU->sp + Immediate);
+	CPU->hl(CPU->sp + CPU->NextByte());
 	return 12;
 }
 
 INSTRUCTION(LD_Pnn_SP)
 {
-	CPU->sp = CPU->MemoryController.GetWord(CPU->pc + 1);
-	CPU->pc += 2;
+	CPU->MemoryController[CPU->NextWord()] = CPU->sp;
 	return 20;
 }
 
 INSTRUCTION(PUSH_nn)
 {
+	CPU->sp -= 2;
+	u8 High = OpCode & 0xF0;
+	u16 Value = 0;
+	
+	switch (High)
+	{
+		case 0xF: Value = CPU->af(); break;
+		case 0xC: Value = CPU->bc(); break;
+		case 0xD: Value = CPU->de(); break;
+		case 0xE: Value = CPU->hl(); break;
+		default: break;
+	}
+	CPU->MemoryController[CPU->sp] = Value;
+
 	return 16;
 }
 
 INSTRUCTION(POP_nn)
 {
+	u8 High = OpCode & 0xF0;
+	u16 Value = CPU->MemoryController.GetWord(CPU->sp);
+	
+	switch (High)
+	{
+	case 0xF: CPU->af(Value); break;
+	case 0xC: CPU->bc(Value); break;
+	case 0xD: CPU->de(Value); break;
+	case 0xE: CPU->hl(Value); break;
+	}
+	CPU->sp += 2;
 	return 12;
 }
 
 INSTRUCTION(ADD_A_n)
 {
+	u8 Low = OpCode & 0x0F;
+	u8 Value = 0;
+	
+	if (OpCode == 0xC6)
+	{
+		Value = CPU->NextByte();
+	}
+	else
+	{
+		switch (Low)
+		{
+		case 0x7: Value = CPU->a; break;
+		case 0x0: Value = CPU->b; break;
+		case 0x1: Value = CPU->c; break;
+		case 0x2: Value = CPU->d; break;
+		case 0x3: Value = CPU->e; break;
+		case 0x4: Value = CPU->h; break;
+		case 0x5: Value = CPU->l; break;
+		case 0x6: Value = CPU->MemoryController[CPU->hl()]; break;
+		default: break;
+		}
+	}
+	CPU->a += Value;
+	// TODO set flags
 	return 4;
 }
 
@@ -597,17 +662,17 @@ void FCPU::Execute(const u32 ExecCycles)
 
 #define C(op) Cycles += op(This(), Instruction)
 
-		switch (Instruction)
+		switch ((u16)Instruction)
 		{
 		case 0x00: C(NOP); break;
-		case 0x01: C(STUB); break;
+		case 0x01: C(LD_sn_snn); break;
 		case 0x02: C(LD_n_A); break;
 		case 0x03: C(STUB); break;
 		case 0x04: C(STUB); break;
 		case 0x05: C(STUB); break;
 		case 0x06: C(LD_nn_n); break;
 		case 0x07: C(STUB); break;
-		case 0x08: C(STUB); break;
+		case 0x08: C(LD_Pnn_SP); break;
 		case 0x09: C(STUB); break;
 		case 0x0A: C(LD_A_n); break;
 		case 0x0B: C(STUB); break;
@@ -617,7 +682,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x0F: C(STUB); break;
 
 		case 0x10: C(STUB); break;
-		case 0x11: C(STUB); break;
+		case 0x11: C(LD_sn_snn); break;
 		case 0x12: C(LD_n_A); break;
 		case 0x13: C(STUB); break;
 		case 0x14: C(STUB); break;
@@ -634,8 +699,8 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x1F: C(STUB); break;
 
 		case 0x20: C(STUB); break;
-		case 0x21: C(STUB); break;
-		case 0x22: C(STUB); break;
+		case 0x21: C(LD_sn_snn); break;
+		case 0x22: C(LD_PHLI_A); break;
 		case 0x23: C(STUB); break;
 		case 0x24: C(STUB); break;
 		case 0x25: C(STUB); break;
@@ -643,7 +708,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x27: C(STUB); break;
 		case 0x28: C(STUB); break;
 		case 0x29: C(STUB); break;
-		case 0x2A: C(STUB); break;
+		case 0x2A: C(LD_A_PHLI); break;
 		case 0x2B: C(STUB); break;
 		case 0x2C: C(STUB); break;
 		case 0x2D: C(STUB); break;
@@ -651,8 +716,8 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x2F: C(STUB); break;
 
 		case 0x30: C(STUB); break;
-		case 0x31: C(STUB); break;
-		case 0x32: C(STUB); break;
+		case 0x31: C(LD_sn_snn); break;
+		case 0x32: C(LD_PHLD_A); break;
 		case 0x33: C(STUB); break;
 		case 0x34: C(STUB); break;
 		case 0x35: C(STUB); break;
@@ -660,7 +725,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x37: C(STUB); break;
 		case 0x38: C(STUB); break;
 		case 0x39: C(STUB); break;
-		case 0x3A: C(STUB); break;
+		case 0x3A: C(LD_A_PHLD); break;
 		case 0x3B: C(STUB); break;
 		case 0x3C: C(STUB); break;
 		case 0x3D: C(STUB); break;
@@ -735,14 +800,14 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x7E: C(LD_r1_r2); break;
 		case 0x7F: C(LD_n_A); break;
 
-		case 0x80: C(STUB); break;
-		case 0x81: C(STUB); break;
-		case 0x82: C(STUB); break;
-		case 0x83: C(STUB); break;
-		case 0x84: C(STUB); break;
-		case 0x85: C(STUB); break;
-		case 0x86: C(STUB); break;
-		case 0x87: C(STUB); break;
+		case 0x80: C(ADD_A_n); break;
+		case 0x81: C(ADD_A_n); break;
+		case 0x82: C(ADD_A_n); break;
+		case 0x83: C(ADD_A_n); break;
+		case 0x84: C(ADD_A_n); break;
+		case 0x85: C(ADD_A_n); break;
+		case 0x86: C(ADD_A_n); break;
+		case 0x87: C(ADD_A_n); break;
 		case 0x88: C(STUB); break;
 		case 0x89: C(STUB); break;
 		case 0x8A: C(STUB); break;
@@ -804,12 +869,12 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0xBF: C(STUB); break;
 
 		case 0xC0: C(STUB); break;
-		case 0xC1: C(STUB); break;
+		case 0xC1: C(POP_nn); break;
 		case 0xC2: C(STUB); break;
 		case 0xC3: C(STUB); break;
 		case 0xC4: C(STUB); break;
-		case 0xC5: C(STUB); break;
-		case 0xC6: C(STUB); break;
+		case 0xC5: C(PUSH_nn); break;
+		case 0xC6: C(ADD_A_n); break;
 		case 0xC7: C(STUB); break;
 		case 0xC8: C(STUB); break;
 		case 0xC9: C(STUB); break;
@@ -821,11 +886,11 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0xCF: C(STUB); break;
 
 		case 0xD0: C(STUB); break;
-		case 0xD1: C(STUB); break;
+		case 0xD1: C(POP_nn); break;
 		case 0xD2: C(STUB); break;
 		case 0xD3: C(STUB); break;
 		case 0xD4: C(STUB); break;
-		case 0xD5: C(STUB); break;
+		case 0xD5: C(PUSH_nn); break;
 		case 0xD6: C(STUB); break;
 		case 0xD7: C(STUB); break;
 		case 0xD8: C(STUB); break;
@@ -837,12 +902,12 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0xDE: C(STUB); break;
 		case 0xDF: C(STUB); break;
 
-		case 0xE0: C(STUB); break;
-		case 0xE1: C(STUB); break;
-		case 0xE2: C(STUB); break;
+		case 0xE0: C(LDH_Pn_A); break;
+		case 0xE1: C(POP_nn); break;
+		case 0xE2: C(LD_PC_A); break;
 		case 0xE3: C(STUB); break;
 		case 0xE4: C(STUB); break;
-		case 0xE5: C(STUB); break;
+		case 0xE5: C(PUSH_nn); break;
 		case 0xE6: C(STUB); break;
 		case 0xE7: C(STUB); break;
 		case 0xE8: C(STUB); break;
@@ -854,16 +919,16 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0xEE: C(STUB); break;
 		case 0xEF: C(STUB); break;
 
-		case 0xF0: C(STUB); break;
-		case 0xF1: C(STUB); break;
-		case 0xF2: C(STUB); break;
+		case 0xF0: C(LDH_A_Pn); break;
+		case 0xF1: C(POP_nn); break;
+		case 0xF2: C(LD_A_PC); break;
 		case 0xF3: C(STUB); break;
 		case 0xF4: C(STUB); break;
-		case 0xF5: C(STUB); break;
+		case 0xF5: C(PUSH_nn); break;
 		case 0xF6: C(STUB); break;
 		case 0xF7: C(STUB); break;
-		case 0xF8: C(STUB); break;
-		case 0xF9: C(STUB); break;
+		case 0xF8: C(LD_SP_n); break;
+		case 0xF9: C(LD_SP_HL); break;
 		case 0xFA: C(LD_A_n); break;
 		case 0xFB: C(STUB); break;
 		case 0xFC: C(STUB); break;
