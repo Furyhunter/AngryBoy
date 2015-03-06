@@ -9,7 +9,7 @@ set(__GitUtilities ON)
 find_program(GIT_EXECUTABLE git)
 
 function(git_describe variable path)
-	execute_process(COMMAND "${GIT_EXECUTABLE}" "describe" "--dirty" "--all"
+	execute_process(COMMAND "${GIT_EXECUTABLE}" "describe" "--dirty" "--always"
 		WORKING_DIRECTORY "${path}"
 		RESULT_VARIABLE result
 		OUTPUT_VARIABLE output
