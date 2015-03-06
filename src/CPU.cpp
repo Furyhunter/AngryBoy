@@ -358,23 +358,117 @@ INSTRUCTION(ADD_A_n)
 		default: break;
 		}
 	}
-	CPU->a += Value;
-	// TODO set flags
+	
+	u32 Result = (u32)CPU->a + (u32)Value;
+	u32 CarryBits = (u32)CPU->a ^ Value ^ Result;
+	CPU->ClearFlags();
+	if ((CarryBits & 0x100) != 0) CPU->ToggleFlagC();
+	if ((CarryBits & 0x10)  != 0) CPU->ToggleFlagH();
+	if ((Result & 0xFF)     == 0) CPU->ToggleFlagZ();
+	CPU->a = Result & 0xFF;
 	return 4;
 }
 
 INSTRUCTION(ADC_A_n)
 {
+	u8 Low = OpCode & 0x0F;
+	u8 Value = 0;
+	
+	if (OpCode == 0xCE)
+	{
+		Value = CPU->NextByte();
+	}
+	else
+	{
+		switch (Low)
+		{
+		case 0xF: Value = CPU->a; break;
+		case 0x8: Value = CPU->b; break;
+		case 0x9: Value = CPU->c; break;
+		case 0xA: Value = CPU->d; break;
+		case 0xB: Value = CPU->e; break;
+		case 0xC: Value = CPU->h; break;
+		case 0xD: Value = CPU->l; break;
+		case 0xE: Value = CPU->MemoryController[CPU->hl()]; break;
+		default: break;
+		}
+	}
+
+	u32 Carry = (CPU->GetFlagC() ? 1 : 0);
+	u32 Result = (u32)CPU->a + Value + Carry;
+	CPU->ClearFlags();
+	if ((Result & 0xFFFF) == 0) CPU->ToggleFlagZ();
+	if ((Result & 0xFFFF) > 0xFF) CPU->ToggleFlagC();
+	if ((Result & 0xFFFF) > 0xF) CPU->ToggleFlagH();
 	return 4;
 }
 
 INSTRUCTION(SUB_n)
 {
+	u8 Low = OpCode & 0x0F;
+	u8 Value = 0;
+	
+	if (OpCode == 0xD6)
+	{
+		Value = CPU->NextByte();
+	}
+	else
+	{
+		switch (Low)
+		{
+		case 0x7: Value = CPU->a; break;
+		case 0x0: Value = CPU->b; break;
+		case 0x1: Value = CPU->c; break;
+		case 0x2: Value = CPU->d; break;
+		case 0x3: Value = CPU->e; break;
+		case 0x4: Value = CPU->h; break;
+		case 0x5: Value = CPU->l; break;
+		case 0x6: Value = CPU->MemoryController[CPU->hl()]; break;
+		default: break;
+		}
+	}
+	
+	u32 Result = (u32)CPU->a - (u32)Value;
+	u32 CarryBits = (u32)CPU->a ^ Value ^ Result;
+	CPU->ClearFlags();
+	if ((CarryBits & 0x100) != 0) CPU->ToggleFlagC();
+	if ((CarryBits & 0x10)  != 0) CPU->ToggleFlagH();
+	if ((Result & 0xFF)     == 0) CPU->ToggleFlagZ();
+	CPU->a = Result & 0xFF;
 	return 4;
 }
 
 INSTRUCTION(SBC_A_n)
 {
+	u8 Low = OpCode & 0x0F;
+	u8 Value = 0;
+	
+	if (OpCode == 0xDE)
+	{
+		Value = CPU->NextByte();
+	}
+	else
+	{
+		switch (Low)
+		{
+			case 0xF: Value = CPU->a; break;
+			case 0x8: Value = CPU->b; break;
+			case 0x9: Value = CPU->c; break;
+			case 0xA: Value = CPU->d; break;
+			case 0xB: Value = CPU->e; break;
+			case 0xC: Value = CPU->h; break;
+			case 0xD: Value = CPU->l; break;
+			case 0xE: Value = CPU->MemoryController[CPU->hl()]; break;
+			default: break;
+		}
+	}
+	
+	u32 Carry = (CPU->GetFlagC() ? 1 : 0);
+	u32 Result = (u32)CPU->a - Value - Carry;
+	CPU->ClearFlags();
+	if ((Result & 0xFF) == 0) CPU->ToggleFlagZ();
+	if ((Result & 0xFFFF) > 0xFF) CPU->ToggleFlagC();
+	if ((Result & 0xFF) > 0xF) CPU->ToggleFlagH();
 	return 4;
 }
 
@@ -808,31 +902,31 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x85: C(ADD_A_n); break;
 		case 0x86: C(ADD_A_n); break;
 		case 0x87: C(ADD_A_n); break;
-		case 0x88: C(STUB); break;
-		case 0x89: C(STUB); break;
-		case 0x8A: C(STUB); break;
-		case 0x8B: C(STUB); break;
-		case 0x8C: C(STUB); break;
-		case 0x8D: C(STUB); break;
-		case 0x8E: C(STUB); break;
-		case 0x8F: C(STUB); break;
+		case 0x88: C(ADC_A_n); break;
+		case 0x89: C(ADC_A_n); break;
+		case 0x8A: C(ADC_A_n); break;
+		case 0x8B: C(ADC_A_n); break;
+		case 0x8C: C(ADC_A_n); break;
+		case 0x8D: C(ADC_A_n); break;
+		case 0x8E: C(ADC_A_n); break;
+		case 0x8F: C(ADC_A_n); break;
 
-		case 0x90: C(STUB); break;
-		case 0x91: C(STUB); break;
-		case 0x92: C(STUB); break;
-		case 0x93: C(STUB); break;
-		case 0x94: C(STUB); break;
-		case 0x95: C(STUB); break;
-		case 0x96: C(STUB); break;
-		case 0x97: C(STUB); break;
-		case 0x98: C(STUB); break;
-		case 0x99: C(STUB); break;
-		case 0x9A: C(STUB); break;
-		case 0x9B: C(STUB); break;
-		case 0x9C: C(STUB); break;
-		case 0x9D: C(STUB); break;
-		case 0x9E: C(STUB); break;
-		case 0x9F: C(STUB); break;
+		case 0x90: C(SUB_n); break;
+		case 0x91: C(SUB_n); break;
+		case 0x92: C(SUB_n); break;
+		case 0x93: C(SUB_n); break;
+		case 0x94: C(SUB_n); break;
+		case 0x95: C(SUB_n); break;
+		case 0x96: C(SUB_n); break;
+		case 0x97: C(SUB_n); break;
+		case 0x98: C(SBC_A_n); break;
+		case 0x99: C(SBC_A_n); break;
+		case 0x9A: C(SBC_A_n); break;
+		case 0x9B: C(SBC_A_n); break;
+		case 0x9C: C(SBC_A_n); break;
+		case 0x9D: C(SBC_A_n); break;
+		case 0x9E: C(SBC_A_n); break;
+		case 0x9F: C(SBC_A_n); break;
 
 		case 0xA0: C(STUB); break;
 		case 0xA1: C(STUB); break;
@@ -882,7 +976,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0xCB: C(STUB); break; // Extended Operations
 		case 0xCC: C(STUB); break;
 		case 0xCD: C(STUB); break;
-		case 0xCE: C(STUB); break;
+		case 0xCE: C(ADC_A_n); break;
 		case 0xCF: C(STUB); break;
 
 		case 0xD0: C(STUB); break;
@@ -891,7 +985,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0xD3: C(STUB); break;
 		case 0xD4: C(STUB); break;
 		case 0xD5: C(PUSH_nn); break;
-		case 0xD6: C(STUB); break;
+		case 0xD6: C(SUB_n); break;
 		case 0xD7: C(STUB); break;
 		case 0xD8: C(STUB); break;
 		case 0xD9: C(STUB); break;
@@ -899,7 +993,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0xDB: C(STUB); break;
 		case 0xDC: C(STUB); break;
 		case 0xDD: C(STUB); break;
-		case 0xDE: C(STUB); break;
+		case 0xDE: C(SBC_A_n); break;
 		case 0xDF: C(STUB); break;
 
 		case 0xE0: C(LDH_Pn_A); break;

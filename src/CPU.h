@@ -45,12 +45,17 @@ public:
 	bool Stopped = false;
 	
 	u8 NextByte() { return MemoryController[++pc]; }
-	u16 NextWord() { return ((u16)MemoryController[++pc]) + ((u16)MemoryController[++pc] << 8); }
+	u16 NextWord() { pc += 2; return ((u16)MemoryController[pc - 1]) + ((u16)MemoryController[pc] << 8); }
 
-	bool GetFlagZ() { return (f & 64) > 0; }
-	bool GetFlagC() { return (f & 32) > 0; }
-	bool GetFlagH() { return (f & 16) > 0; }
-	bool GetFlagN() { return (f & 8) > 0; }
+	bool GetFlagZ() const { return (f & 64) > 0; }
+	bool GetFlagC() const { return (f & 32) > 0; }
+	bool GetFlagH() const { return (f & 16) > 0; }
+	bool GetFlagN() const { return (f & 8) > 0; }
+	void ClearFlags() { f = 0; }
+	void ToggleFlagZ() { f ^= 64; }
+	void ToggleFlagC() { f ^= 32; }
+	void ToggleFlagH() { f ^= 16; }
+	void ToggleFlagN() { f ^= 8; }
 
 	void Init();
 	void Step();
