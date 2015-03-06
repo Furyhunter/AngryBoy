@@ -104,7 +104,7 @@ INSTRUCTION(LD_r1_r2)
 	}
 	else if (OpCode == 0x36)
 	{
-		CPU->MemoryController[CPU->hl()] = CPu->NextByte();
+		CPU->MemoryController[CPU->hl()] = CPU->NextByte();
 	}
 	else
 	{
