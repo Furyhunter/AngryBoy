@@ -39,6 +39,9 @@ public:
 	void af(u16 v) { a = (v & 0xFF00) >> 8; f = v & 0x00FF; }
 
 	bool Stopped = false;
+	
+	u8 NextByte() { return MemoryController[++pc]; }
+	u16 NextWord() { return ((u16)MemoryController[++pc]) + ((u16)MemoryController[++pc] << 8); }
 
 	bool GetFlagZ() { return (f & 64) > 0; }
 	bool GetFlagC() { return (f & 32) > 0; }

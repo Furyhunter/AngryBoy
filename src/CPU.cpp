@@ -33,186 +33,186 @@ INSTRUCTION(LD_nn_n)
 
 INSTRUCTION(LD_r1_r2)
 {
-    u8* Register1 = nullptr;
-    u8* Register2 = nullptr;
-    u16 CurrentHLValue = CPU->hl();
-    u32 Cycles = 4;
+	u8* Register1 = nullptr;
+	u8* Register2 = nullptr;
+	u16 CurrentHLValue = CPU->hl();
+	u32 Cycles = 4;
 
-    if (BETWEEN(OpCode, 0x78, 0x7F))
-        Register1 = &CPU->a;
-    if (BETWEEN(OpCode, 0x40, 0x47))
-        Register1 = &CPU->b;
-    if (BETWEEN(OpCode, 0x48, 0x4F))
-        Register1 = &CPU->c;
-    if (BETWEEN(OpCode, 0x50, 0x57))
-        Register1 = &CPU->d;
-    if (BETWEEN(OpCode, 0x58, 0x5F))
-        Register1 = &CPU->e;
-    if (BETWEEN(OpCode, 0x60, 0x67))
-        Register1 = &CPU->h;
-    if (BETWEEN(OpCode, 0x68, 0x70))
-        Register1 = &CPU->l;
-    if (BETWEEN(OpCode, 0x70, 0x77))
-        Register1 = (u8*)42;
-    
-    u8 Low = OpCode & 0x0F;
-    if (Register1 == &CPU->a)
-    {
-        switch (Low)
-        {
-        case 0x8: Register2 = &CPU->b; break;
-        case 0x9: Register2 = &CPU->c; break;
-        case 0xa: Register2 = &CPU->d; break;
-        case 0xb: Register2 = &CPU->e; break;
-        case 0xc: Register2 = &CPU->h; break;
-        case 0xd: Register2 = &CPU->l; break;
-        case 0xe: Register2 = (u8*)42; Cycles = 8; break;
-        case 0xf: Register2 = &CPU->a; break;
-        default: break;
-        }
-    }
-    else
-    {
-        switch (Low)
-        {
-        case 0x0: Register2 = &CPU->b; break;
-        case 0x1: Register2 = &CPU->c; break;
-        case 0x2: Register2 = &CPU->d; break;
-        case 0x3: Register2 = &CPU->e; break;
-        case 0x4: Register2 = &CPU->h; break;
-        case 0x5: Register2 = &CPU->l; break;
-        case 0x6: Register2 = (u8*)42; Cycles = 8; break;
+	if (BETWEEN(OpCode, 0x78, 0x7F))
+		Register1 = &CPU->a;
+	if (BETWEEN(OpCode, 0x40, 0x47))
+		Register1 = &CPU->b;
+	if (BETWEEN(OpCode, 0x48, 0x4F))
+		Register1 = &CPU->c;
+	if (BETWEEN(OpCode, 0x50, 0x57))
+		Register1 = &CPU->d;
+	if (BETWEEN(OpCode, 0x58, 0x5F))
+		Register1 = &CPU->e;
+	if (BETWEEN(OpCode, 0x60, 0x67))
+		Register1 = &CPU->h;
+	if (BETWEEN(OpCode, 0x68, 0x70))
+		Register1 = &CPU->l;
+	if (BETWEEN(OpCode, 0x70, 0x77))
+		Register1 = (u8*)42;
+	
+	u8 Low = OpCode & 0x0F;
+	if (Register1 == &CPU->a)
+	{
+		switch (Low)
+		{
+		case 0x8: Register2 = &CPU->b; break;
+		case 0x9: Register2 = &CPU->c; break;
+		case 0xa: Register2 = &CPU->d; break;
+		case 0xb: Register2 = &CPU->e; break;
+		case 0xc: Register2 = &CPU->h; break;
+		case 0xd: Register2 = &CPU->l; break;
+		case 0xe: Register2 = (u8*)42; Cycles = 8; break;
+		case 0xf: Register2 = &CPU->a; break;
+		default: break;
+		}
+	}
+	else
+	{
+		switch (Low)
+		{
+		case 0x0: Register2 = &CPU->b; break;
+		case 0x1: Register2 = &CPU->c; break;
+		case 0x2: Register2 = &CPU->d; break;
+		case 0x3: Register2 = &CPU->e; break;
+		case 0x4: Register2 = &CPU->h; break;
+		case 0x5: Register2 = &CPU->l; break;
+		case 0x6: Register2 = (u8*)42; Cycles = 8; break;
 
-        case 0x8: Register2 = &CPU->b; break;
-        case 0x9: Register2 = &CPU->c; break;
-        case 0xa: Register2 = &CPU->d; break;
-        case 0xb: Register2 = &CPU->e; break;
-        case 0xc: Register2 = &CPU->h; break;
-        case 0xd: Register2 = &CPU->l; break;
-        case 0xe: Register2 = (u8*)42; Cycles = 8; break;
-        default: break;
-        }
-    }
-    
-    if (Register1 == (u8 *)42)
-    {
-        CPU->MemoryController.SetByte(CurrentHLValue, *Register2);
-    }
-    else if (Register2 == (u8 *)42)
-    {
-        *Register1 = CPU->MemoryController[CPU->hl()];
-    }
-    else if (OpCode == 0x36)
-    {
-        CPU->MemoryController[CPU->hl()] = CPU->MemoryController[++CPU->pc];
-    }
-    else
-    {
-        *Register1 = *Register2;
-    }
-    
+		case 0x8: Register2 = &CPU->b; break;
+		case 0x9: Register2 = &CPU->c; break;
+		case 0xa: Register2 = &CPU->d; break;
+		case 0xb: Register2 = &CPU->e; break;
+		case 0xc: Register2 = &CPU->h; break;
+		case 0xd: Register2 = &CPU->l; break;
+		case 0xe: Register2 = (u8*)42; Cycles = 8; break;
+		default: break;
+		}
+	}
+	
+	if (Register1 == (u8 *)42)
+	{
+		CPU->MemoryController.SetByte(CurrentHLValue, *Register2);
+	}
+	else if (Register2 == (u8 *)42)
+	{
+		*Register1 = CPU->MemoryController[CPU->hl()];
+	}
+	else if (OpCode == 0x36)
+	{
+		CPU->MemoryController[CPU->hl()] = CPu->NextByte();
+	}
+	else
+	{
+		*Register1 = *Register2;
+	}
+	
 	return Cycles;
 }
 
 INSTRUCTION(LD_A_n)
 {
-    u8 * RegisterA = &CPU->a;
-    u8 * RegisterN = nullptr;
-    u8 High = OpCode & 0xF0;
-    u8 Low = OpCode & 0x0F;
-    u32 Cycles = 4;
-    
-    if (High == 0x70)
-    {
-        switch (Low)
-        {
-            case 0xf: RegisterN = &CPU->a; break;
-            case 0x8: RegisterN = &CPU->b; break;
-            case 0x9: RegisterN = &CPU->c; break;
-            case 0xa: RegisterN = &CPU->d; break;
-            case 0xb: RegisterN = &CPU->e; break;
-            case 0xc: RegisterN = &CPU->h; break;
-            case 0xd: RegisterN = &CPU->l; break;
-            case 0xe: RegisterN = (u8 *)42; Cycles = 8; break;
-            default: break;
-        }
-        
-        if (RegisterN == (u8 *)42)
-        {
-            *RegisterA = CPU->MemoryController[CPU->hl()];
-        }
-        else
-        {
-            *RegisterA = *RegisterN;
-        }
-    }
-    else if (OpCode == 0x0A)
-    {
-        u16 Loc = ((u16)(CPU->b) << 8) + ((u16)(CPU->c));
-        *RegisterA = CPU->MemoryController[Loc];
-        Cycles = 8;
-    }
-    else if (OpCode == 0x1A)
-    {
-        u16 Loc = ((u16)(CPU->d) << 8) + ((u16)(CPU->e));
-        *RegisterA = CPU->MemoryController[Loc];
-        Cycles = 8;
-    }
-    else if (OpCode == 0xFA)
-    {
-        u16 Loc = ((u16)(CPU->MemoryController[++CPU->pc])) + ((u16)(CPU->MemoryController[++CPU->pc]) << 8);
-        *RegisterA = CPU->MemoryController[Loc];
-        Cycles = 16;
-    }
-    else if (OpCode == 0x3E)
-    {
-        *RegisterA = CPU->MemoryController[++CPU->pc];
-        Cycles = 8;
-    }
+	u8 * RegisterA = &CPU->a;
+	u8 * RegisterN = nullptr;
+	u8 High = OpCode & 0xF0;
+	u8 Low = OpCode & 0x0F;
+	u32 Cycles = 4;
+	
+	if (High == 0x70)
+	{
+		switch (Low)
+		{
+			case 0xf: RegisterN = &CPU->a; break;
+			case 0x8: RegisterN = &CPU->b; break;
+			case 0x9: RegisterN = &CPU->c; break;
+			case 0xa: RegisterN = &CPU->d; break;
+			case 0xb: RegisterN = &CPU->e; break;
+			case 0xc: RegisterN = &CPU->h; break;
+			case 0xd: RegisterN = &CPU->l; break;
+			case 0xe: RegisterN = (u8 *)42; Cycles = 8; break;
+			default: break;
+		}
+		
+		if (RegisterN == (u8 *)42)
+		{
+			*RegisterA = CPU->MemoryController[CPU->hl()];
+		}
+		else
+		{
+			*RegisterA = *RegisterN;
+		}
+	}
+	else if (OpCode == 0x0A)
+	{
+		u16 Loc = ((u16)(CPU->b) << 8) + ((u16)(CPU->c));
+		*RegisterA = CPU->MemoryController[Loc];
+		Cycles = 8;
+	}
+	else if (OpCode == 0x1A)
+	{
+		u16 Loc = ((u16)(CPU->d) << 8) + ((u16)(CPU->e));
+		*RegisterA = CPU->MemoryController[Loc];
+		Cycles = 8;
+	}
+	else if (OpCode == 0xFA)
+	{
+		u16 Loc = CPU->NextWord();
+		*RegisterA = CPU->MemoryController[Loc];
+		Cycles = 16;
+	}
+	else if (OpCode == 0x3E)
+	{
+		*RegisterA = CPU->NextByte();
+		Cycles = 8;
+	}
 	return Cycles;
 }
 
 INSTRUCTION(LD_n_A)
 {
-    u8* RegisterN = nullptr;
-    u8 Low = 0x0F;
-    u8 High = 0xF0;
-    u32 Cycles = 4;
-    u16 Loc = 0;
-    
-    switch (OpCode)
-    {
-        case 0x7F: CPU->a = CPU->a; break;
-        case 0x47: CPU->b = CPU->a; break;
-        case 0x4F: CPU->c = CPU->a; break;
-        case 0x57: CPU->d = CPU->a; break;
-        case 0x5F: CPU->e = CPU->a; break;
-        case 0x67: CPU->h = CPU->a; break;
-        case 0x6F: CPU->l = CPU->a; break;
-        case 0x02:
-            Loc = ((u16)(CPU->b) << 8) + ((u16)(CPU->c));
-            CPU->MemoryController[Loc] = CPU->a;
-            Cycles = 8;
-            break;
-        case 0x12:
-            Loc = ((u16)(CPU->d) << 8) + ((u16)(CPU->e));
-            CPU->MemoryController[Loc] = CPU->a;
-            Cycles = 8;
-            break;
-        case 0x77:
-            Loc = ((u16)(CPU->h) << 8) + ((u16)(CPU->l));
-            CPU->MemoryController[Loc] = CPU->a;
-            Cycles = 8;
-            break;
-        case 0xEA:
-            Loc = ((u16)(CPU->MemoryController[++CPU->pc])) + ((u16)(CPU->MemoryController[++CPU->pc]) << 8);
-            CPU->MemoryController[Loc] = CPU->a;
-            Cycles = 16;
-            break;
-        default:
-            break;
-    }
-    
+	u8* RegisterN = nullptr;
+	u8 Low = 0x0F;
+	u8 High = 0xF0;
+	u32 Cycles = 4;
+	u16 Loc = 0;
+	
+	switch (OpCode)
+	{
+		case 0x7F: CPU->a = CPU->a; break;
+		case 0x47: CPU->b = CPU->a; break;
+		case 0x4F: CPU->c = CPU->a; break;
+		case 0x57: CPU->d = CPU->a; break;
+		case 0x5F: CPU->e = CPU->a; break;
+		case 0x67: CPU->h = CPU->a; break;
+		case 0x6F: CPU->l = CPU->a; break;
+		case 0x02:
+			Loc = ((u16)(CPU->b) << 8) + ((u16)(CPU->c));
+			CPU->MemoryController[Loc] = CPU->a;
+			Cycles = 8;
+			break;
+		case 0x12:
+			Loc = ((u16)(CPU->d) << 8) + ((u16)(CPU->e));
+			CPU->MemoryController[Loc] = CPU->a;
+			Cycles = 8;
+			break;
+		case 0x77:
+			Loc = ((u16)(CPU->h) << 8) + ((u16)(CPU->l));
+			CPU->MemoryController[Loc] = CPU->a;
+			Cycles = 8;
+			break;
+		case 0xEA:
+			Loc = ((u16)(CPU->MemoryController[++CPU->pc])) + ((u16)(CPU->MemoryController[++CPU->pc]) << 8);
+			CPU->MemoryController[Loc] = CPU->a;
+			Cycles = 16;
+			break;
+		default:
+			break;
+	}
+	
 	return Cycles;
 }
 
