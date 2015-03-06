@@ -1,0 +1,5 @@
+#pragma once
+
+#define ANGRYBOY_VERSION "${AngryBoy_VERSION}"
+#define ANGRYBOY_BRANCH  "${AngryBoy_GIT_BRANCH}"
+#define ANGRYBOY_REVISION "${AngryBoy_GIT_DESCRIBE}"
