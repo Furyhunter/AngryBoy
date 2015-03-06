@@ -4,8 +4,11 @@
 
 #define CPU_CLOCKRATE 4194304
 
-
+#ifdef _MSC_VER
 #define FORCEINLINE __forceinline
+#else
+#define FORCEINLINE __inline__ __attribute__((always_inline))
+#endif
 
 typedef signed int     s32;
 typedef signed short   s16;
