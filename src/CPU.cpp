@@ -118,11 +118,11 @@ INSTRUCTION(LD_A_n)
 {
 	u8 * RegisterA = &CPU->a;
 	u8 * RegisterN = nullptr;
-	u8 High = OpCode & 0xF0;
+	u8 High = (OpCode & 0xF0) >> 4;
 	u8 Low = OpCode & 0x0F;
 	u32 Cycles = 4;
 	
-	if (High == 0x70)
+	if (High == 0x7)
 	{
 		switch (Low)
 		{
@@ -268,7 +268,7 @@ INSTRUCTION(LDH_A_Pn)
 /* #####  16-bit Loads  #####*/
 INSTRUCTION(LD_sn_snn)
 {
-	u8 High = OpCode & 0xF0;
+	u8 High = (OpCode & 0xF0) >> 4;
 	
 	switch (High)
 	{
@@ -302,7 +302,7 @@ INSTRUCTION(LD_Pnn_SP)
 INSTRUCTION(PUSH_nn)
 {
 	CPU->sp -= 2;
-	u8 High = OpCode & 0xF0;
+	u8 High = (OpCode & 0xF0) >> 4;
 	u16 Value = 0;
 	
 	switch (High)
@@ -320,7 +320,7 @@ INSTRUCTION(PUSH_nn)
 
 INSTRUCTION(POP_nn)
 {
-	u8 High = OpCode & 0xF0;
+	u8 High = (OpCode & 0xF0) >> 4;
 	u16 Value = CPU->MemoryController.GetWord(CPU->sp);
 	
 	switch (High)
@@ -696,11 +696,32 @@ INSTRUCTION(DEC_n)
 
 INSTRUCTION(ADD_HL_n)
 {
+	u8 High = (OpCode & 0xF0) >> 4;
+	u16 Value = 0;
+	
+	switch (High)
+	{
+		case 0x0: Value = CPU->bc(); break;
+		case 0x1: Value = CPU->de(); break;
+		case 0x2: Value = CPU->hl(); break;
+		case 0x3: Value = CPU->sp; break;
+		default: break;
+	}
+	
+	u32 Result = (u32)(CPU->hl()) + (u32)(Value);
+	u32 CarryBits = (u32)(CPU->hl()) ^ (u32)Value ^ (u32)Result;
+	bool OldZFlag = CPU->GetFlagZ();
+	CPU->ClearFlags();
+	if (OldZFlag) CPU->ToggleFlagZ();
+	if ((CarryBits & 0x10000) != 0) CPU->ToggleFlagC();
+	if ((CarryBits & 0x100) != 0) CPU->ToggleFlagH();
+	CPU->hl((u32)(Result & 0x0000FFFF));
 	return 8;
 }
 
 INSTRUCTION(ADD_SP_n)
 {
+	u16 Immediate = CPU->NextWord();
 	return 16;
 }
 
@@ -959,7 +980,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x06: C(LD_nn_n); break;
 		case 0x07: C(STUB); break;
 		case 0x08: C(LD_Pnn_SP); break;
-		case 0x09: C(STUB); break;
+		case 0x09: C(ADD_HL_n); break;
 		case 0x0A: C(LD_A_n); break;
 		case 0x0B: C(STUB); break;
 		case 0x0C: C(INC_n); break;
@@ -976,7 +997,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x16: C(LD_nn_n); break;
 		case 0x17: C(STUB); break;
 		case 0x18: C(STUB); break;
-		case 0x19: C(STUB); break;
+		case 0x19: C(ADD_HL_n); break;
 		case 0x1A: C(LD_A_n); break;
 		case 0x1B: C(STUB); break;
 		case 0x1C: C(INC_n); break;
@@ -993,7 +1014,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x26: C(LD_nn_n); break;
 		case 0x27: C(STUB); break;
 		case 0x28: C(STUB); break;
-		case 0x29: C(STUB); break;
+		case 0x29: C(ADD_HL_n); break;
 		case 0x2A: C(LD_A_PHLI); break;
 		case 0x2B: C(STUB); break;
 		case 0x2C: C(INC_n); break;
@@ -1010,7 +1031,7 @@ void FCPU::Execute(const u32 ExecCycles)
 		case 0x36: C(LD_r1_r2); break;
 		case 0x37: C(STUB); break;
 		case 0x38: C(STUB); break;
-		case 0x39: C(STUB); break;
+		case 0x39: C(ADD_HL_n); break;
 		case 0x3A: C(LD_A_PHLD); break;
 		case 0x3B: C(STUB); break;
 		case 0x3C: C(INC_n); break;
